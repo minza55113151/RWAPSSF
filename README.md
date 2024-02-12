@@ -14,4 +14,4 @@
 1. Use commitment to protect front-running
 2. (Done) Use account address instead idx 0 or 1
 3. Use timer to protect lock
-4. Restart game when game finish
+4. (Done) Restart game when game finish
