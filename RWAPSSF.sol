@@ -5,8 +5,19 @@ pragma solidity >=0.7.0 <0.9.0;
 import "./CommitReveal.sol";
 
 contract RPS is CommitReveal {
+    /*
+    0 - Rock
+    1 - Fire
+    2 - Scissors
+    3 - Sponge
+    4 - Paper
+    5 - Air
+    6 - Water
+
+    7 - Undecided
+    */
     struct Player {
-        uint choice; // 0 - Rock, 1 - Paper , 2 - Scissors, 3 - undefined
+        uint choice;
         address addr;
         bool isCommitted;
     }
@@ -17,7 +28,7 @@ contract RPS is CommitReveal {
     uint private numReveal = 0;
 
     function hashChoiceWithSalt(uint choice, string memory salt) public pure returns (bytes32) {
-        require(choice >= 0 && choice < 4);
+        require(choice >= 0 && choice <= 7);
         return keccak256(abi.encodePacked(choice, salt));
     }
 
@@ -26,7 +37,7 @@ contract RPS is CommitReveal {
         require(msg.value == 1 ether);
         reward += msg.value;
         players[numPlayer].addr = msg.sender;
-        players[numPlayer].choice = 3;
+        players[numPlayer].choice = 7;
         players[numPlayer].isCommitted = false;
         numPlayer++;
         emit PlayerJoined(msg.sender, numPlayer);
@@ -58,7 +69,7 @@ contract RPS is CommitReveal {
         require(numPlayer == 2);
         require(numInput == 2);
         require(msg.sender == players[0].addr || msg.sender == players[1].addr);
-        require(choice >= 0 && choice < 4);
+        require(choice >= 0 && choice <= 7);
         require(players[0].isCommitted && players[1].isCommitted);
 
         bytes32 hashChoice = hashChoiceWithSalt(choice, salt);
@@ -86,18 +97,19 @@ contract RPS is CommitReveal {
         uint p1Choice = players[1].choice;
         address payable account0 = payable(players[0].addr);
         address payable account1 = payable(players[1].addr);
-        if ((p0Choice + 1) % 3 == p1Choice) {
-            // to pay player[1]
-            account1.transfer(reward);
-        }
-        else if ((p1Choice + 1) % 3 == p0Choice) {
-            // to pay player[0]
-            account0.transfer(reward);    
-        }
-        else {
+
+        if (p0Choice == p1Choice) {
             // to split reward
             account0.transfer(reward / 2);
             account1.transfer(reward / 2);
+        }
+        else if ((p0Choice + 1) % 7 == p1Choice || (p0Choice + 2) % 7 == p1Choice || (p0Choice + 3) % 7 == p1Choice){
+            // to pay player[1]
+            account0.transfer(reward);
+        }
+        else if ((p1Choice + 1) % 7 == p0Choice || (p1Choice + 2) % 7 == p0Choice || (p1Choice + 3) % 7 == p0Choice){
+            // to pay player[0]
+            account1.transfer(reward);    
         }
     }
 
