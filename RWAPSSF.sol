@@ -26,6 +26,9 @@ contract RPS is CommitReveal {
     uint private numPlayer = 0;
     uint private numInput = 0;
     uint private numReveal = 0;
+    uint private TIME_LIMIT = 1 minutes;
+    uint private lastActionTime = block.timestamp;
+
 
     function hashChoiceWithSalt(uint choice, string memory salt) public pure returns (bytes32) {
         require(choice >= 0 && choice <= 7);
@@ -41,6 +44,7 @@ contract RPS is CommitReveal {
         players[numPlayer].isCommitted = false;
         numPlayer++;
         emit PlayerJoined(msg.sender, numPlayer);
+        lastActionTime = block.timestamp;
     }
     event PlayerJoined(address sender, uint numPlayer);
 
@@ -62,6 +66,7 @@ contract RPS is CommitReveal {
         commit(getHash(hashChoice));
         numInput++;
         emit PlayerCommittedHashChoice(msg.sender, numInput);
+        lastActionTime = block.timestamp;
     }
     event PlayerCommittedHashChoice(address sender, uint numInput);
 
@@ -89,6 +94,7 @@ contract RPS is CommitReveal {
             _checkWinnerAndPay();
             _resetGame();
         }
+        lastActionTime = block.timestamp;
     }
     event PlayerRevealed(address sender, uint numReveal);
 
@@ -111,7 +117,10 @@ contract RPS is CommitReveal {
             // to pay player[0]
             account1.transfer(reward);    
         }
+        emit GameResult(p0Choice, p1Choice);
     }
+    event GameResult(uint p0Choice, uint p1Choice);
+
 
     function _resetGame() private {
         numPlayer = 0;
@@ -121,4 +130,61 @@ contract RPS is CommitReveal {
         emit GameReset();
     }
     event GameReset();
+
+    function playerWithdraw() public {
+        // require some player
+        require(numPlayer > 0);
+        // require sender are player
+        require(msg.sender == players[0].addr || msg.sender == players[1].addr);
+        // require time limit
+        require(block.timestamp > lastActionTime + TIME_LIMIT);
+        uint playerIdx;
+        uint otherPlayerIdx;
+        if (msg.sender == players[0].addr){
+            playerIdx = 0;
+            otherPlayerIdx = 1;
+        }
+        else if(msg.sender == players[1].addr){
+            playerIdx = 1;
+            otherPlayerIdx = 0;
+        }
+
+        require(!commits[players[otherPlayerIdx].addr].revealed, "Opponent already revealed");
+
+        address payable account = payable(players[playerIdx].addr);
+        account.transfer(1 ether);
+        emit PlayerWithdrawn(msg.sender);
+
+        // check state
+        if (numPlayer == 1){
+            numPlayer--;
+            reward -= 1 ether;
+        }
+        else if (numPlayer == 2 && numInput == 0){
+            numPlayer--;
+            reward -= 1 ether;
+            if (playerIdx == 0){
+                players[0] = players[1];
+            }
+        }
+        else if (numPlayer == 2 && (numInput == 1 || numInput == 2) && numReveal == 0){
+            numPlayer--;
+            reward -= 1 ether;
+            numInput--;
+            if (playerIdx == 0){
+                players[0] = players[1];
+            }
+        }
+        // Reveal by self
+        else if (numPlayer == 2 && numInput == 2 && numReveal == 1){
+            numPlayer--;
+            reward -= 1 ether;
+            numInput--;
+            numReveal--;
+            if (playerIdx == 0){
+                players[0] = players[1];
+            }
+        }
+    }
+    event PlayerWithdrawn(address sender);
 }
