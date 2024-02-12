@@ -12,10 +12,28 @@
 ## Solution
 
 1. (Done) Use commitment to protect front-running
+   - Player commit their choice by hash it by function `hashChoiceWithSalt(choice, salt)`
+   - When both player commit their choice, they reveal their choice and salt and compare it with their commitment then get winner
 2. (Done) Use account address instead idx 0 or 1
+   - Use `msg.sender` to get player instead of using idx
+   - So player not need to know their idx
 3. (Done) Use timer to protect lock
+   - If player 1 not play in time, player 0 can call `playerWithdraw` to get their money back
+   - But if other player reveal their choice, player can't withdraw their money
 4. (Done) Restart game when game finish
+   - When game finish, reset all game state to initial state
 
 ## Additional
 
 1. (Done) Rock Water Air Paper Sponge Scissors Fire (7 elements)
+   - Add more elements and change winner logic
+
+## Example
+
+### Player 1 win and player 2 lose
+
+![Player 1 win and player 2 lose](./P1WinP2.png)
+
+### Draw
+
+![Draw](./Draw.png)
