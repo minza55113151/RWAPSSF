@@ -15,3 +15,7 @@
 2. (Done) Use account address instead idx 0 or 1
 3. Use timer to protect lock
 4. (Done) Restart game when game finish
+
+## Additional
+
+1. (Done) Rock Water Air Paper Sponge Scissors Fire (7 elements)
