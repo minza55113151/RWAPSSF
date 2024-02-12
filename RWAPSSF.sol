@@ -61,5 +61,12 @@ contract RPS {
             account0.transfer(reward / 2);
             account1.transfer(reward / 2);
         }
+        _resetGame();
+    }
+
+    function _resetGame() private {
+        numPlayer = 0;
+        numInput = 0;
+        reward = 0;
     }
 }
