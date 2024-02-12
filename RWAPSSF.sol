@@ -12,16 +12,18 @@ contract RPS {
     uint public numPlayer = 0;
     uint public numInput = 0;
 
-    function addPlayer() public payable {
+    function playerJoin() public payable {
         require(numPlayer < 2);
         require(msg.value == 1 ether);
         reward += msg.value;
         players[numPlayer].addr = msg.sender;
         players[numPlayer].choice = 3;
         numPlayer++;
+        emit PlayerJoined(msg.sender);
     }
+    event PlayerJoined(address sender);
 
-    function input(uint choice) public  {
+    function playerChoose(uint choice) public  {
         // require 2 player
         require(numPlayer == 2);
         // require sender are player
@@ -40,8 +42,10 @@ contract RPS {
         numInput++;
         if (numInput == 2) {
             _checkWinnerAndPay();
+            _resetGame();
         }
     }
+    event PlayerChoosed(address sender);
 
     function _checkWinnerAndPay() private {
         uint p0Choice = players[0].choice;
@@ -61,12 +65,13 @@ contract RPS {
             account0.transfer(reward / 2);
             account1.transfer(reward / 2);
         }
-        _resetGame();
     }
 
     function _resetGame() private {
         numPlayer = 0;
         numInput = 0;
         reward = 0;
+        emit GameReset();
     }
+    event GameReset();
 }
